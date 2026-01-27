@@ -1,8 +1,9 @@
-resource "aws_instance" "vm" {
+resource "aws_instance" "this" {
   for_each      = var.instances
   ami           = var.ami_id
   instance_type = var.environment == "dev" ? "t3.micro" : each.value.instance_type
-  
+  user_data     = local.cloud_init_content
+
 
   root_block_device {
     volume_size = each.value.root_disk_size
@@ -20,12 +21,16 @@ resource "aws_instance" "vm" {
     Name = "${local.name_prefix}-aws-${each.key}"
   }
 
-      lifecycle {
-    
-    precondition {
-        condition     = can(data.aws_ami.db_ami.tags["Stable"])
-        error_message = "The selected AMI must be stable"
-    }
+    lifecycle {
 
-    }
+  precondition {
+      condition = (
+      try(data.aws_ami.selected.tags["state"], "") == "stable" && 
+      try(data.aws_ami.selected.tags["distro"], "") == var.distro
+    )
+      error_message = "The selected AMI must have both tags, state = stable AND distro = rocky OR distro = debian"
+  }
+
+  }
+
 }

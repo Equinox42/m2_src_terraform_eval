@@ -15,6 +15,14 @@ variable "ami_id" {
   type        = string
 }
 
+variable "distro" {
+  description = "OS Distribution expected"
+  type        = string
+  validation {
+    condition     = contains(["debian", "rocky"], var.os_family)
+    error_message = "must be either debian or rocky"
+  }
+}
 variable "instances" {
   description = "Instances Configuration"
   type = map(object({
@@ -25,3 +33,17 @@ variable "instances" {
   }))
 
 }
+
+variable "vm_user" {
+  description = "User of the VM"
+  type = string
+
+}
+
+variable "ssh_key" {
+  # This one could be passed with env variable through github secrets/variable with TF_VAR_ssh_key 
+  description = "content of the ssh public key"
+  type = string
+  
+}
+
