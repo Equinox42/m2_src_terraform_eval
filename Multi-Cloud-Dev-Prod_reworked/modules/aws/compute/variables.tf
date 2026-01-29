@@ -1,7 +1,7 @@
 variable "environment" {
-    description = "Environment to deploy, either dev or prod"
-    nullable = false
-    type = string
+  description = "Environment to deploy, either dev or prod"
+  nullable    = false
+  type        = string
 
   validation {
     condition     = contains(["dev", "prod"], var.environment)
@@ -10,6 +10,12 @@ variable "environment" {
 
 }
 
+variable "team" {
+  description = "Team name, this is used for budget tracking"
+  type        = string
+  nullable    = false
+
+}
 variable "ami_id" {
   description = "AMI ID of the instance - must be tagged with stable"
   type        = string
@@ -19,7 +25,7 @@ variable "distro" {
   description = "OS Distribution expected"
   type        = string
   validation {
-    condition     = contains(["debian", "rocky"], var.os_family)
+    condition     = contains(["debian", "rocky"], var.distro)
     error_message = "must be either debian or rocky"
   }
 }
@@ -36,14 +42,14 @@ variable "instances" {
 
 variable "vm_user" {
   description = "User of the VM"
-  type = string
+  type        = string
 
 }
 
 variable "ssh_key" {
   # This one could be passed with env variable through github secrets/variable with TF_VAR_ssh_key 
   description = "content of the ssh public key"
-  type = string
-  
+  type        = string
+
 }
 

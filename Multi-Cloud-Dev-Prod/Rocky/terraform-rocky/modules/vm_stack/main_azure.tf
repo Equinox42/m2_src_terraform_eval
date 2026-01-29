@@ -7,12 +7,12 @@ resource "azurerm_resource_group" "rg" {
 # ... inclure vnet, subnet, nic ...
 
 resource "azurerm_linux_virtual_machine" "vm" {
-  count               = var.vm_count
-  name                = "${local.name_prefix}-az-${count.index}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_B2s"
-  admin_username      = var.vm_user
+  count                 = var.vm_count
+  name                  = "${local.name_prefix}-az-${count.index}"
+  resource_group_name   = azurerm_resource_group.rg.name
+  location              = azurerm_resource_group.rg.location
+  size                  = "Standard_B2s"
+  admin_username        = var.vm_user
   network_interface_ids = [azurerm_network_interface.nic[count.index].id]
 
   admin_ssh_key {

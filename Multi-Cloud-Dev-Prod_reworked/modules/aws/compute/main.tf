@@ -17,19 +17,17 @@ resource "aws_instance" "this" {
     }
   }
 
-  tags = {
-    Name = "${local.name_prefix}-aws-${each.key}"
-  }
+  tags = merge(local.common_tags, { Name = "${var.distro}-${var.environment}-aws-${each.key}" })
 
-    lifecycle {
+  lifecycle {
 
-  precondition {
+    precondition {
       condition = (
-      try(data.aws_ami.selected.tags["state"], "") == "stable" && 
-      try(data.aws_ami.selected.tags["distro"], "") == var.distro
-    )
+        try(data.aws_ami.selected.tags["state"], "") == "stable" &&
+        try(data.aws_ami.selected.tags["distro"], "") == var.distro
+      )
       error_message = "The selected AMI must have both tags, state = stable AND distro = rocky OR distro = debian"
-  }
+    }
 
   }
 

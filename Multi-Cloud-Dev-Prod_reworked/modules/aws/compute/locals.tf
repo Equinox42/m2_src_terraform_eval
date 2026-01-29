@@ -6,4 +6,12 @@ locals {
     ssh_key_value = var.ssh_key
   })
 
+  common_tags = {
+    ManagedBy   = "Terraform"
+    Environment = var.environment
+    Module      = "aws-compute"
+    Team        = var.team
+    Owner       = var.vm_user
+
+  }
 }
