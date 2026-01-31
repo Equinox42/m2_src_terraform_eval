@@ -42,7 +42,7 @@ La solution actuelle tente péniblement de déployer des machines virtuelles sur
 
 ### Sécurité 
 
-- J'ai relevé également des aspects du code problématique, notamment celui-ci `source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"` d'un point de vue sécurité c'est rarement une bonne idée, on va plutôt privilégier un checksum  et en terme d'immuabilité ça va contre les principes de Terraform qui est censé décrire l'état de l'infrastructure tel quelle est réellement, il suffit que les personnes en charge du dépôt mettent à jour l'image pour qu'on se retrouve avec différentes versions sur nos VMs. 
+-  Certains aspects du code sont problématique, notamment celui-ci `source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"` d'un point de vue sécurité c'est rarement une bonne idée, on va plutôt privilégier un checksum  et en terme d'immuabilité ça va contre les principes de Terraform qui est censé décrire l'état de l'infrastructure tel quelle est réellement, il suffit que les personnes en charge du dépôt mettent à jour l'image pour qu'on se retrouve avec différentes versions sur nos VMs. 
 
 - On fait usage de la même clef publique sur tous les providers et ce quelque soit la distribution, je pense qu'on pourrait a minima avoir une paire de clef ssh différentes par provider, ça permet de contenir le blast radius si jamais la clef privée n'était plus si privée...
 
@@ -92,7 +92,9 @@ La structure suit le pattern suivant :
 
 **Gestion Dynamique des Ressources** : Remplacement de l'argument `count` par `for_each` pour la gestion des instances et des disques. Cela garantit la stabilité des ressources lors de la suppression d'un élément au milieu d'une liste (problème de décalage d'index) ainsi qu'une plus grande granularité dans la configurations des ressources. 
 
-J'ai également rajouter des count dans l'appel des modules (`enable_aws`, `enable_azure`, etc.), ce qui permet d'instancier ou non des ressources sur les cloud providers. 
+L'usage de count dans l'appel des modules (`enable_aws`, `enable_azure`, etc.), permet d'instancier ou non des ressources sur les cloud providers, si toutefois dans le futur on ne souhaitait plus déployer sur certains cloud providers. 
+
+L'usage de structure conditionnelle comme pour le sizing des instances sur les environnements de dévelopemment permet de pas provisionner des instances démesurées. 
 
 La configuration du cloud_init est maintenant déportée dans un template `cloud_init.yaml.tftpl` et elle varie en fonction du contenu de la variable `var.distro` grâce à une structure conditionnelle if. C'est ce que préconise en général hashicorp plutôt que l'usage de heredoc. 
 
