@@ -1,4 +1,71 @@
 <!-- BEGIN_TF_DOCS -->
+
+## AWS Compute Module
+
+This module handles the deployment and granular configuration of EC2 instances. It is designed to support environments (mixing Debian and Rocky Linux distributions) within a single deployment loop using for_each.
+
+
+## Distribution Management
+
+The module acts as a wrapper and does not enforce a single global AMI. The ami_id and distro context are encapsulated within the instance object. The templates/cloud_init.yaml.tftpl file leverages Terraform's template directive logic to adapt the bootstrap process at runtime:
+
+## Features
+
+Multi-OS Support: Dynamic management of distributions with automatic cloud-init adaptation (OS-specific GRUB commands) based on the input context.
+
+Fail-Fast Validation: Implements lifecycle { precondition } blocks to prevent deployment if the selected AMI does not meet compliance standards (must have matching state=stable and distro tags).
+
+Granular Configuration: Each instance carries its own definition (instance type, storage layout, AMI, OS) via a complex object map.
+
+FinOps & Governance: Enforces standardized automatic tagging (Environment, Team, Owner, ManagedBy) for cost allocation.
+
+Storage Management: Dynamic allocation of additional EBS volumes via dynamic blocks.
+
+```
+%{ if distro == "rocky" }
+- grub2-mkconfig -o /boot/grub2/grub.cfg
+%{ else }
+- grub-mkconfig -o /boot/grub/grub.cfg
+%{ endif }
+```
+## Security Mechanism (Preconditions)
+
+Prior to resource creation, Terraform verifies the AMI tags via a data source. If the AMI is not tagged correctly according to the requested distribution, the deployment is strictly blocked to avoid silent configuration drift or runtime errors.
+
+## Usage Example
+
+````
+module "aws_compute" {
+  source = "../../modules/aws/compute"
+
+  environment = "dev"
+  team        = "SRE"
+  vm_user     = "admin-user"
+  ssh_key     = "ssh-rsa AAAAB3Nz..."
+
+  # Instances Configuration
+  instances = {
+    "web-01" = {
+      instance_type    = "t3.micro"
+      root_disk_size   = 20
+      extra_disk_count = 0
+      extra_disk_size  = 0
+      ami_id           = "ami-0abcd1234" # Debian AMI ID
+      distro           = "debian"
+    },
+    "db-01" = {
+      instance_type    = "m5.large"
+      root_disk_size   = 50
+      extra_disk_count = 2
+      extra_disk_size  = 100
+      ami_id           = "ami-0wxyz9876" # Rocky AMI ID
+      distro           = "rocky"
+    }
+  }
+}
+
+```
+
 ## Requirements
 
 | Name | Version |
@@ -11,10 +78,6 @@
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.0 |
-
-## Modules
-
-No modules.
 
 ## Resources
 
@@ -35,7 +98,4 @@ No modules.
 | <a name="input_team"></a> [team](#input\_team) | Team name, this is used for budget tracking | `string` | n/a | yes |
 | <a name="input_vm_user"></a> [vm\_user](#input\_vm\_user) | User of the VM | `string` | n/a | yes |
 
-## Outputs
-
-No outputs.
 <!-- END_TF_DOCS -->
