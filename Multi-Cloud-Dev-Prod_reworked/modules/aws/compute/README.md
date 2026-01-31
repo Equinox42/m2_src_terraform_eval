@@ -1,6 +1,4 @@
-<!-- BEGIN_TF_DOCS -->
-
-## AWS Compute Module
+## AWS Compute Module
 
 This module handles the deployment and granular configuration of EC2 instances. It is designed to support environments (mixing Debian and Rocky Linux distributions) within a single deployment loop using for_each.
 
@@ -34,7 +32,7 @@ Prior to resource creation, Terraform verifies the AMI tags via a data source. I
 
 ## Usage Example
 
-````
+```
 module "aws_compute" {
   source = "../../modules/aws/compute"
 
@@ -65,6 +63,8 @@ module "aws_compute" {
 }
 
 ```
+
+<!-- BEGIN_TF_DOCS --> 
 
 ## Requirements
 
