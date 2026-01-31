@@ -1,6 +1,10 @@
 bootcmd:
   - sed -i 's/GRUB_CMDLINE_LINUX="\(.*\)"/GRUB_CMDLINE_LINUX="\1 edd=off"/g' /etc/default/grub
+  %{ if distro == "rocky" }
+  - grub2-mkconfig -o /boot/grub2/grub.cfg
+  %{ else }
   - grub-mkconfig -o /boot/grub/grub.cfg
+  %{ endif }
 users:
   - name: ${username}
     sudo: ALL=(ALL) NOPASSWD:ALL
