@@ -16,12 +16,8 @@ variable "enable_gcp" {
 variable "enable_libvirt" {
     description = "enable libvirt"
     type = bool
-  
 }
-variable "region" {
-  description = "Which AWS Region you want to deploy ressources"
-  type = string
-}
+
 variable "environment" {
     description = "Environment to deploy, either dev or prod"
     nullable = false
@@ -40,6 +36,25 @@ variable "team" {
   type = string
   nullable = false
   
+}
+
+#############################
+### AWS RELATED VARIABLES ###
+#############################
+
+variable "aws_region" {
+  description = "Which AWS Region you want to deploy ressources"
+  type = string
+}
+
+variable "aws_acess_key" {
+  description = "AWS Access key used to connect to the AWS Account"
+  type = string
+}
+
+variable "aws_secret_key" {
+  description = "AWS secret key used to connect to the AWS Account"
+  type = string
 }
 variable "ami_id" {
   description = "AMI ID of the instance - must be tagged with stable"
