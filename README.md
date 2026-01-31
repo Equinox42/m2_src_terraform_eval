@@ -42,9 +42,11 @@ La solution actuelle tente péniblement de déployer des machines virtuelles sur
 
 ### Sécurité 
 
--  Certains aspects du code sont problématique, notamment celui-ci `source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"` d'un point de vue sécurité c'est rarement une bonne idée, on va plutôt privilégier un checksum  et en terme d'immuabilité ça va contre les principes de Terraform qui est censé décrire l'état de l'infrastructure tel quelle est réellement, il suffit que les personnes en charge du dépôt mettent à jour l'image pour qu'on se retrouve avec différentes versions sur nos VMs. 
+-  Certains aspects du code sont problématique, notamment celui-ci `source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"` d'un point de vue sécurité c'est rarement une bonne idée, on va plutôt privilégier un checksum  et en terme d'immuabilité ça va contre les principes de Terraform qui est censé décrire l'état de l'infrastructure tel quelle est réellement, il suffit que les personnes en charge du dépôt mettent à jour l'image pour qu'on se retrouve avec différentes versions sur nos VMs. D'ailleurs Debian 12 et Rocky 9 ne sont pas les dernières versions sur ces deux OS, on préfera partir sur des releases plus récentes. 
 
 - On fait usage de la même clef publique sur tous les providers et ce quelque soit la distribution, je pense qu'on pourrait a minima avoir une paire de clef ssh différentes par provider, ça permet de contenir le blast radius si jamais la clef privée n'était plus si privée...
+
+- En ne précisant rien dans configuration des ressources aws_instance on viendra déployer sur le default VPC, ce qui est généralement pas une bonne pratique, étant donné que ceux-ci viennent de facto avec des sous-réseaux publiques. 
 
 ### Industrialisation
 
@@ -83,7 +85,7 @@ La structure suit le pattern suivant :
     * **Séparation Fonctionnelle** : Découpage strict entre `network` (VPC/VNet, Subnets) et `compute` (EC2/VM, Disques). L'idée des modules étant le "self-service". Chaque module possède une architecture similaire avec une séparation distinctes des fichiers (main.tf, variables.tf, locals.tf, data.tf, etc) pour en faciliter la maintenance et la compréhension. 
     * **Abstraction** : Les modules masquent la complexité des ressources (ex: la gestion des disques EBS via `dynamic blocks` ou les validations `lifecycle`).
 
-* **`environments/` : Contient l'instanciation des modules pour chaque environnement (`dev`, `prod`).
+*`environments/` : Contient l'instanciation des modules pour chaque environnement (`dev`, `prod`).
     * **Isolation** : Chaque environnement possède son propre `main.tf` et ses variables (`tfvars`), garantissant une isolation totale des états et réduisant le Blast Radius en cas d'erreur.
 
 ### Choix Techniques Clés
