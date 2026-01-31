@@ -1,6 +1,15 @@
+**Note sur la méthodologie de documentation**
+
+Dans une optique d'industrialisation et de maintenabilité, la documentation technique de ce projet a été générée de manière semi-automatisée :
+
+- **Aspects techniques (Inputs/Outputs/Resources) :** Générés automatiquement via **`terraform-docs`** pour garantir une fidélité entre le code et la documentation.
+- **Aspects rédactionnels (Descriptions & Architecture) :** Rédigés avec l'assistance d'outils d'IA générative pour assurer clarté et synthèse.
+
+Cette approche a permis de prioriser le développement de la logique d'infrastructure du code Terraform, tout en fournissant une documentation standardisée.
+
 ## Ce que fait la solution actuelle 
 
-La solution actuelle tente péniblement de déployer des machines virtuelles sur différents cloud providers (aws, azure, gcp et libvirt) en faisant usage de "module", on observe deux grandes familles d'OS (Debian et Rocky Linux) et en général de multiples disques sont alloués aux VMs. 
+La solution actuelle tente péniblement de déployer des machines virtuelles sur différents cloud providers (aws, azure, gcp et libvirt) en faisant usage de "module", on observe deux grandes familles d'OS (Debian et Rocky Linux) et en général de multiples disques sont attachés aux VMs. 
 
 ## Critiques de la solution 
 
@@ -33,9 +42,9 @@ La solution actuelle tente péniblement de déployer des machines virtuelles sur
 
 ### Sécurité 
 
-J'ai relevé également des aspects du code problématique, notamment celui-ci `source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"` d'un point de vue sécurité c'est rarement une bonne idée, on va plutôt privilégier un checksum  et en terme d'immuabilité ça va contre les principes de Terraform qui est censé décrire l'état de l'infrastructure tel quelle est réellement, il suffit que les personnes en charge du dépôt mettent à jour l'image pour qu'on se retrouve avec différentes versions sur nos VMs. 
+- J'ai relevé également des aspects du code problématique, notamment celui-ci `source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"` d'un point de vue sécurité c'est rarement une bonne idée, on va plutôt privilégier un checksum  et en terme d'immuabilité ça va contre les principes de Terraform qui est censé décrire l'état de l'infrastructure tel quelle est réellement, il suffit que les personnes en charge du dépôt mettent à jour l'image pour qu'on se retrouve avec différentes versions sur nos VMs. 
 
-On fait usage de la même clef publique sur tous les providers et ce quelque soit la distribution, je pense qu'on pourrait a minima avoir une paire de clef ssh différentes par provider, ça permet de contenir le blast radius si jamais la clef privée n'était plus si privée...
+- On fait usage de la même clef publique sur tous les providers et ce quelque soit la distribution, je pense qu'on pourrait a minima avoir une paire de clef ssh différentes par provider, ça permet de contenir le blast radius si jamais la clef privée n'était plus si privée...
 
 ### Industrialisation
 
@@ -51,3 +60,42 @@ Les propositions suivantes sont certainement hors-scope du TP, néanmoins, on po
 
 - **Sécurité de l'Authentification :** Les blocs `provider` ne doivent contenir aucun secret. L'authentification doit être déportée via des variables d'environnement (`TF_VAR`) ou, idéalement, via des mécanismes d'identité managée (OIDC, IAM Roles) au sein de la CI/CD.
 
+## Proposition d'améliorations 
+
+### Architecture de la Solution
+
+L'architecture du projet repose sur une approche modulaire et hiérarchisée, conçue pour garantir la maintenabilité, la scalabilité et la sécurité des déploiements Multi-Cloud (AWS & Azure).
+
+### Structure du projet
+
+**Note sur la méthodologie de documentation**
+
+Dans une optique d'industrialisation et de maintenabilité, la documentation technique de ce projet a été générée de manière semi-automatisée :
+
+- **Aspects techniques (Inputs/Outputs/Resources) :** Générés automatiquement via **`terraform-docs`** pour garantir une fidélité entre le code et la documentation.
+- **Aspects rédactionnels (Descriptions & Architecture) :** Rédigés avec l'assistance d'outils d'IA générative pour assurer clarté et synthèse.
+
+Cette approche a permis de prioriser le développement de la logique d'infrastructure du code Terraform, tout en fournissant une documentation standardisée.
+
+La structure suit le pattern suivant :
+
+* `modules/` : Contient le code réutilisable et agnostique.
+    * **Séparation Fonctionnelle** : Découpage strict entre `network` (VPC/VNet, Subnets) et `compute` (EC2/VM, Disques). L'idée des modules étant le "self-service". Chaque module possède une architecture similaire avec une séparation distinctes des fichiers (main.tf, variables.tf, locals.tf, data.tf, etc) pour en faciliter la maintenance et la compréhension. 
+    * **Abstraction** : Les modules masquent la complexité des ressources (ex: la gestion des disques EBS via `dynamic blocks` ou les validations `lifecycle`).
+
+* **`environments/` : Contient l'instanciation des modules pour chaque environnement (`dev`, `prod`).
+    * **Isolation** : Chaque environnement possède son propre `main.tf` et ses variables (`tfvars`), garantissant une isolation totale des états et réduisant le Blast Radius en cas d'erreur.
+
+### Choix Techniques Clés
+
+**Validations Robustes** : Utilisation intensive des blocs `validation` (variables) et `lifecycle { precondition }` (ressources) pour empêcher le déploiement d'une configuration invalide (ex: AMI non taguée "stable" ou n'ayant pas un OS Rocky Linux ou Debian) avant même l'appel API.
+
+**Gestion Dynamique des Ressources** : Remplacement de l'argument `count` par `for_each` pour la gestion des instances et des disques. Cela garantit la stabilité des ressources lors de la suppression d'un élément au milieu d'une liste (problème de décalage d'index) ainsi qu'une plus grande granularité dans la configurations des ressources. 
+
+J'ai également rajouter des count dans l'appel des modules (`enable_aws`, `enable_azure`, etc.), ce qui permet d'instancier ou non des ressources sur les cloud providers. 
+
+La configuration du cloud_init est maintenant déportée dans un template `cloud_init.yaml.tftpl` et elle varie en fonction du contenu de la variable `var.distro` grâce à une structure conditionnelle if. C'est ce que préconise en général hashicorp plutôt que l'usage de heredoc. 
+
+**Tags & Gouvernance** : Centralisation des tags via `locals` et fusion automatique (`merge`) pour assurer la traçabilité des coûts notamment avec l'usage de tags `team` et managed by terraform pour éviter (tout du moins essayer) qu'une personne vienne modifier la ressource à la main.
+
+**Documentation** : Les fichiers .tf sont commentés pour la plupart pour facilement s'y retrouver et un README.md est présent pour chaque module. 
