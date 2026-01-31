@@ -31,4 +31,12 @@ module "azure_compute" {
   count  = var.enable_azure ? 1 : 0
 
 
+
+}
+
+module "gcp_compute" {
+
+  source = "../../modules/gcp/compute"
+  count  = var.enable_gcp ? 1 : 0 
+  
 }

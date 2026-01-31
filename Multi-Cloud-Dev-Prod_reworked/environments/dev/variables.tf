@@ -23,19 +23,16 @@ variable "environment" {
     nullable = false
     default = "dev"
     type = string
-
   validation {
     condition     = contains(["dev", "prod"], var.environment)
     error_message = "The environment variable must be set to dev or prod"
   }
-
 }
 
 variable "team" {
   description = "Team name, this is used for budget tracking"
   type = string
-  nullable = false
-  
+  nullable = false 
 }
 
 #############################
@@ -47,15 +44,6 @@ variable "aws_region" {
   type = string
 }
 
-variable "aws_acess_key" {
-  description = "AWS Access key used to connect to the AWS Account"
-  type = string
-}
-
-variable "aws_secret_key" {
-  description = "AWS secret key used to connect to the AWS Account"
-  type = string
-}
 variable "ami_id" {
   description = "AMI ID of the instance - must be tagged with stable"
   type        = string
@@ -93,4 +81,24 @@ variable "ssh_key" {
   
 }
 
+
+#############################
+### GCP RELATED VARIABLES ###
+#############################
+
+variable "gcp_project" {
+  description = "ID of the gcp project"
+  type        = string
+  nullable    = false
+}
+
+variable "gcp_region" {
+  description = "Which gcp region you want to deploy your resources"
+  type        = string
+}
+
+variable "gcp_zone" {
+  description = "Which gcp zone you want to depoy your resources"
+  type        = string
+}
 

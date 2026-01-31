@@ -15,11 +15,25 @@ terraform {
   }
 }
 
+
 # Configure the AWS Provider
 provider "aws" {
 
-  region = var.region
-
+  region = var.aws_region
+  # To use the provider, user should provide authentification as environment variables
+  #export AWS_ACCESS_KEY_ID="AKIA..."
+  #export AWS_SECRET_ACCESS_KEY="wJalr..."
 }
 
 
+# Configure the Azure Provider
+
+
+
+# Configure the GCP Provider
+
+provider "google" {
+  project     = var.gcp_project
+  region      = var.gcp_region
+  zone        = var.gcp_zone
+}
