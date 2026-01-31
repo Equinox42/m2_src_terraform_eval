@@ -70,7 +70,6 @@ variable "aws_instances" {
     extra_disk_count = number
     extra_disk_size  = number
   }))
-
 }
 
 variable "vm_user" {

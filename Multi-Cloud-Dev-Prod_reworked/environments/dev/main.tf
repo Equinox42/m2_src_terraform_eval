@@ -36,7 +36,6 @@ module "azure_compute" {
   instances = var.azure_instances  
   gallery_name = var.gallery_name
   gallery_resource_group_name = var.gallery_resource_group_name
-
 }
 
 

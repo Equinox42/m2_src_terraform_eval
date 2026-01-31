@@ -141,7 +141,7 @@ variable "azure_ssh_key" {
   type = string
 }
 
-variable "instances" {
+variable "azure_instances" {
   description = "Configuration of the VMs"
   type = map(object({
     instance_type    = string
