@@ -36,6 +36,8 @@ variable "instances" {
     root_disk_size   = number
     extra_disk_count = number
     extra_disk_size  = number
+    ami_id           = string
+    distro           = string
   }))
 
 }

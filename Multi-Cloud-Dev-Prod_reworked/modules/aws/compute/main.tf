@@ -1,6 +1,6 @@
 resource "aws_instance" "this" {
   for_each      = var.instances
-  ami           = var.ami_id
+  ami           = each.value.ami_id
   instance_type = var.environment == "dev" ? "t3.micro" : each.value.instance_type
   user_data     = local.cloud_init_content
 
@@ -17,18 +17,17 @@ resource "aws_instance" "this" {
     }
   }
 
-  tags = merge(local.common_tags, { Name = "${var.distro}-${var.environment}-aws-${each.key}" })
+  tags = merge(local.common_tags, { Name = "${each.value.distro}-${var.environment}-aws-${each.key}" })
 
   lifecycle {
 
     precondition {
       condition = (
-        try(data.aws_ami.selected.tags["state"], "") == "stable" &&
-        try(data.aws_ami.selected.tags["distro"], "") == var.distro
+        try(data.aws_ami.selected[each.key].tags["state"], "") == "stable" &&
+        try(data.aws_ami.selected[each.key].tags["distro"], "") == each.value.distro
       )
-      error_message = "The selected AMI must have both tags, state = stable AND distro = rocky OR distro = debian"
+      error_message = "The selected AMI for ${each.key} is invalid, it must have both tags, state = stable AND distro = rocky OR distro = debian"
     }
-
   }
 
 }
