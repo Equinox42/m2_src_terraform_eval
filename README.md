@@ -70,16 +70,58 @@ L'architecture du projet repose sur une approche modulaire et hiérarchisée, co
 
 ### Structure du projet
 
-**Note sur la méthodologie de documentation**
-
-Dans une optique d'industrialisation et de maintenabilité, la documentation technique de ce projet a été générée de manière semi-automatisée :
-
-- **Aspects techniques (Inputs/Outputs/Resources) :** Générés automatiquement via **`terraform-docs`** pour garantir une fidélité entre le code et la documentation.
-- **Aspects rédactionnels (Descriptions & Architecture) :** Rédigés avec l'assistance d'outils d'IA générative pour assurer clarté et synthèse.
-
-Cette approche a permis de prioriser le développement de la logique d'infrastructure du code Terraform, tout en fournissant une documentation standardisée.
-
 La structure suit le pattern suivant :
+
+```
+.
+├── environments
+│   ├── dev
+│   │   ├── development.tfvars
+│   │   ├── main.tf
+│   │   ├── provider.tf
+│   │   └── variables.tf
+│   └── prod
+│       ├── main.tf
+│       ├── production.tfvars
+│       ├── provider.tf
+│       └── variables.tf
+└── modules
+    ├── aws
+    │   ├── compute
+    │   │   ├── data.tf
+    │   │   ├── locals.tf
+    │   │   ├── main.tf
+    │   │   ├── outputs.tf
+    │   │   ├── README.md
+    │   │   ├── templates
+    │   │   │   └── cloud_init.yaml.tftpl
+    │   │   ├── variables.tf
+    │   │   └── versions.tf
+    │   └── network
+    │       ├── main.tf
+    │       ├── outputs.tf
+    │       ├── README.md
+    │       ├── variables.tf
+    │       └── versions.tf
+    └── azure
+        ├── compute
+        │   ├── data.tf
+        │   ├── locals.tf
+        │   ├── main.tf
+        │   ├── outputs.tf
+        │   ├── README.md
+        │   ├── templates
+        │   │   └── cloud_init.yaml.tftpl
+        │   ├── variables.tf
+        │   └── versions.tf
+        └── network
+            ├── main.tf
+            ├── outputs.tf
+            ├── README.md
+            ├── variables.tf
+            └── versions.tf
+...
+```
 
 * `modules/` : Contient le code réutilisable et agnostique.
     * **Séparation Fonctionnelle** : Découpage strict entre `network` (VPC/VNet, Subnets) et `compute` (EC2/VM, Disques). L'idée des modules étant le "self-service". Chaque module possède une architecture similaire avec une séparation distinctes des fichiers (main.tf, variables.tf, locals.tf, data.tf, etc) pour en faciliter la maintenance et la compréhension. 
